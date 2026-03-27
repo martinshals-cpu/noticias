@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Notícias | A sua plataforma de informação</title>
+    <meta name="description" content="Pesquisa de notícias nacionais e internacionais por categorias.">
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Elements -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Header Area -->
+        <header class="sidebar glass-panel">
+            <div class="logo">
+                <i class="fa-solid fa-earth-americas"></i>
+                <h1>News<span>Global</span></h1>
+            </div>
+            
+            <form id="search-form" class="search-form">
+                <div class="form-group">
+                    <label for="topic"><i class="fa-solid fa-magnifying-glass"></i> Assunto da Pesquisa</label>
+                    <input type="text" id="topic" placeholder="Ex: mercados, tecnologia..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="category"><i class="fa-solid fa-layer-group"></i> Área de Notícias</label>
+                    <div class="select-wrapper">
+                        <select id="category">
+                            <option value="general">Geral</option>
+                            <option value="business">Economia / Negócios</option>
+                            <option value="technology">Tecnologia</option>
+                            <option value="sports">Desporto</option>
+                            <option value="entertainment">Entretenimento</option>
+                            <option value="science">Ciência</option>
+                            <option value="health">Saúde</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-globe"></i> Âmbito</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="scope-national" checked>
+                            <span class="checkmark"></span>
+                            Nacional (PT)
+                        </label>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="scope-international" checked>
+                            <span class="checkmark"></span>
+                            Internacional
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-rocket"></i> Pesquisar Notícias
+                </button>
+                
+                <button type="button" id="btn-settings" class="btn-secondary">
+                    <i class="fa-solid fa-gear"></i> Configurar API Key
+                </button>
+            </form>
+            <div style="flex-grow: 1;"></div>
+            <div class="sidebar-footer">
+                <p>Pronto para o Vercel <i class="fa-solid fa-cloud-arrow-up"></i></p>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <div class="top-bar">
+                <h2 id="results-title">Resultados da Pesquisa</h2>
+                <div class="status-indicator">
+                    <span id="api-status" class="status-badge waiting">Aguardando pesquisa...</span>
+                </div>
+            </div>
+
+            <!-- Loader -->
+            <div id="loader" class="loader-container hidden">
+                <div class="spinner"></div>
+                <p>A procurar notícias relevantes...</p>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="results-grid" class="results-grid">
+                <div class="empty-state">
+                    <i class="fa-regular fa-newspaper"></i>
+                    <p>Preencha os campos e clique em pesquisar para ver as notícias aqui.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- API Key Modal -->
+    <div id="api-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-key"></i> Configuração da API</h3>
+                <button id="close-modal" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Para obter notícias reais no browser, utilizamos a <strong>GNews API</strong>. Por favor, insira uma chave gratuita abaixo.</p>
+                <div class="info-box">
+                    <strong>Como obter:</strong>
+                    <ol>
+                        <li>Aceda a <a href="https://gnews.io/" target="_blank">gnews.io</a></li>
+                        <li>Crie uma conta gratuita (botão "Get API Key")</li>
+                        <li>Copie a sua chave e cole aqui</li>
+                    </ol>
+                </div>
+                
+                <div class="form-group mt-3">
+                    <label for="api-key">Chaves da API (GNews)</label>
+                    <input type="password" id="api-key" placeholder="Ex: 5b6c9...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="use-mock-btn" class="btn-secondary" style="margin-right: auto;">Usar Notícias de Teste</button>
+                <button id="save-api-key" class="btn-primary" style="margin-top: 0;">Guardar e Pesquisar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
