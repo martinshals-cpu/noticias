@@ -5,12 +5,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const categorySelect = document.getElementById('category');
     const natCheckbox = document.getElementById('scope-national');
     const intCheckbox = document.getElementById('scope-international');
-    
+
     const resultsGrid = document.getElementById('results-grid');
     const loader = document.getElementById('loader');
     const apiStatus = document.getElementById('api-status');
     const resultsTitle = document.getElementById('results-title');
-    
+
     // Modal Elements
     const apiModal = document.getElementById('api-modal');
     const btnSettings = document.getElementById('btn-settings');
@@ -18,11 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveApiKeyBtn = document.getElementById('save-api-key');
     const useMockBtn = document.getElementById('use-mock-btn');
     const apiKeyInput = document.getElementById('api-key');
-    
+
     // Check for saved API key
     let savedApiKey = localStorage.getItem('gnews_api_key');
     let usingMockData = false;
-    
+
     if (savedApiKey) {
         apiKeyInput.value = savedApiKey;
     } else {
@@ -31,16 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
             apiModal.classList.remove('hidden');
         }, 800);
     }
-    
+
     // Event Listeners for Modal
     btnSettings.addEventListener('click', () => {
         apiModal.classList.remove('hidden');
     });
-    
+
     closeModal.addEventListener('click', () => {
         apiModal.classList.add('hidden');
     });
-    
+
     saveApiKeyBtn.addEventListener('click', () => {
         const key = apiKeyInput.value.trim();
         if (key) {
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             savedApiKey = key;
             usingMockData = false;
             apiModal.classList.add('hidden');
-            
+
             // Re-run search if form is filled
             if (topicInput.value.trim()) {
                 searchForm.dispatchEvent(new Event('submit'));
@@ -83,12 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle Form Submit
     searchForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const topic = topicInput.value.trim();
         const category = categorySelect.value;
         const isNational = natCheckbox.checked;
         const isInternational = intCheckbox.checked;
-        
+
         if (!savedApiKey && !usingMockData) {
             apiModal.classList.remove('hidden');
             return;
@@ -114,52 +114,59 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        try {
-            // Build the GNews API URL
-            // Reference: https://gnews.io/docs/v4
-            let url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&apikey=${savedApiKey}&max=12`;
-            
-            // Only add category if it's not "general" to broaden search
-            if (category !== 'general') {
-                url += `&category=${category}`;
+        // Exemplo de como ficaria a URL e o tratamento de dados para Google
+        async function fetchNews(query, category, national, international) {
+            // ... (manter UI de carregamento)
+
+            try {
+                const GOOGLE_API_KEY = 'TUA_CHAVE_AQUI';
+                const CX_ID = 'TEU_CX_ID_AQUI';
+
+                // Construção da query com filtros de data e país se necessário
+                let fullQuery = query;
+                if (category !== 'general') fullQuery += ` ${category}`;
+                if (national && !international) fullQuery += ' site:.pt';
+
+                const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${CX_ID}&q=${encodeURIComponent(fullQuery)}&num=10`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                loader.classList.add('hidden');
+
+                if (!response.ok) {
+                    throw new Error(data.error ? data.error.message : 'Erro na Google API');
+                }
+
+                // Mapear os dados do Google para o formato que a tua função displayResults já usa
+                const articles = data.items.map(item => ({
+                    title: item.title,
+                    description: item.snippet,
+                    url: item.link,
+                    image: item.pagemap?.cse_image?.[0]?.src || item.pagemap?.metatags?.[0]?.['og:image'],
+                    publishedAt: new Date().toISOString(), // Google CS nem sempre retorna data exata no snippet
+                    source: { name: item.displayLink }
+                }));
+
+                displayResults(articles);
+
+                apiStatus.className = 'status-badge success';
+                apiStatus.textContent = `${articles.length} resultados (Google)`;
+
+            } catch (error) {
+                // ... (manter tratamento de erro)
             }
-
-            // Scope logic
-            if (national && !international) {
-                // National restricted to Portugal
-                url += '&country=pt&lang=pt';
-            } else if (!national && international) {
-                // International (avoid PT)
-                url += '&lang=en';
-            } else {
-                // Both - generic search
-            }
-
-            const response = await fetch(url);
-            const data = await response.json();
-
-            loader.classList.add('hidden');
-
-            if (!response.ok) {
-                throw new Error(data.errors ? data.errors[0] : 'Erro desconhecido na API.');
-            }
-
-            displayResults(data.articles);
-            
-            apiStatus.className = 'status-badge success';
-            apiStatus.textContent = `${data.articles.length} resultados encontrados`;
-            
-        } catch (error) {
+        } {
             loader.classList.add('hidden');
             apiStatus.className = 'status-badge error';
             apiStatus.textContent = 'Erro ao buscar notícias';
-            
+
             // Si o erro for de API Key, apagar
             if (error.message.toLowerCase().includes('apikey')) {
-               localStorage.removeItem('gnews_api_key');
-               savedApiKey = null;
+                localStorage.removeItem('gnews_api_key');
+                savedApiKey = null;
             }
-            
+
             resultsGrid.innerHTML = `
                 <div class="empty-state" style="color: var(--danger);">
                     <i class="fa-solid fa-triangle-exclamation"></i>
@@ -186,8 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
         articles.forEach(article => {
             // Format date
             const date = new Date(article.publishedAt);
-            const formattedDate = new Intl.DateTimeFormat('pt-PT', { 
-                day: '2-digit', month: 'short', year: 'numeric' 
+            const formattedDate = new Intl.DateTimeFormat('pt-PT', {
+                day: '2-digit', month: 'short', year: 'numeric'
             }).format(date);
 
             // Default image if none
@@ -198,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.href = article.url;
             card.target = '_blank';
             card.className = 'article-card';
-            
+
             card.innerHTML = `
                 <img src="${imageUrl}" alt="Imagem da notícia" class="article-img" onerror="this.src='${defaultImage}'">
                 <div class="article-content">
@@ -213,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
-            
+
             resultsGrid.appendChild(card);
         });
     }
